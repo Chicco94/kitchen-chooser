@@ -59,14 +59,18 @@ class App(QWidget):
 				files = ["{}/{}".format(IMAGES_PATH, f) for f in listdir(IMAGES_PATH) if isfile(join(IMAGES_PATH, f))]
 				for file in files:
 					self.results[file] = 0
-		self.path_1,self.path_2 = self.get_image()
+		self.path_1,self.path_2 = self.get_images()
 		
 
 	def get_images(self):
 		"""escludendo le due già attive, ne sceglie un'altra a caso"""
 		pool = self.results.copy()
+		if (self.path_1 in pool):
+			pool.pop(self.path_1)
+		if (self.path_2 in pool):
+			pool.pop(self.path_2)
 		values = sorted(pool.items(), key=lambda x:x[1])
-		return values[2][0],values[3][0]
+		return values[len(pool)//2][0],values[(len(pool)//2)+1][0]
 
 
 	@pyqtSlot()
@@ -82,7 +86,7 @@ class App(QWidget):
 
 
 	def after_click(self):
-		self.path_1,self.path_2 = self.get_image()
+		self.path_1,self.path_2 = self.get_images()
 		
 		self.button1.setStyleSheet("background-image : url({});".format(self.path_1))
 		self.button2.setStyleSheet("background-image : url({});".format(self.path_2))
