@@ -30,25 +30,15 @@ class App(QWidget):
 
 		self.setWindowTitle(self.title)
 		self.setGeometry(self.left, self.top, self.width, self.height)
-
-		label = QLabel(self)
-		label.setText("Image")
-		label.move(205,0)
 		
 		self.button1 = QPushButton(self)
-		self.button1.setToolTip('This is an example button')
 		# setting image to the button
 		self.button1.setStyleSheet("background-image : url({});".format(self.path_1))
 		# setting geometry of button
 		self.button1.setGeometry(5, 20, 400,400)
 		self.button1.clicked.connect(self.on_click_1)
-
-		label = QLabel(self)
-		label.setText("Image")
-		label.move(610,0)
 		
 		self.button2 = QPushButton(self)
-		self.button2.setToolTip('This is an example button')
 		# setting image to the button
 		self.button2.setStyleSheet("background-image : url({});".format(self.path_2))
 		# setting geometry of button
@@ -66,38 +56,36 @@ class App(QWidget):
 					name,points = line.split(":")
 					self.results[name] = int(points)
 			else:
-				pass 
 				files = ["{}/{}".format(IMAGES_PATH, f) for f in listdir(IMAGES_PATH) if isfile(join(IMAGES_PATH, f))]
 				for file in files:
 					self.results[file] = 0
-		self.path_1 = self.get_image()
-		self.path_2 = self.get_image()
-		print(self.path_1)
-		print(self.path_2)
+		self.path_1,self.path_2 = self.get_image()
 		
 
-	
-	
-	def get_image(self):
+	def get_images(self):
 		"""escludendo le due già attive, ne sceglie un'altra a caso"""
-		pool = list(self.results.keys())
-		pool = [x for x in pool if x != self.path_1]
-		pool = [x for x in pool if x != self.path_2]
-		return choice(pool)
+		pool = self.results.copy()
+		values = sorted(pool.items(), key=lambda x:x[1])
+		return values[2][0],values[3][0]
 
 
 	@pyqtSlot()
 	def on_click_1(self):
 		self.results[self.path_1] = self.results[self.path_1] + 1
-		self.path_2 = self.get_image()
-		self.button2.setStyleSheet("background-image : url({});".format(self.path_2))
+		self.after_click()
 
 
 	@pyqtSlot()
 	def on_click_2(self):
 		self.results[self.path_2] = self.results[self.path_2] + 1
-		self.path_1 = self.get_image()
+		self.after_click()
+
+
+	def after_click(self):
+		self.path_1,self.path_2 = self.get_image()
+		
 		self.button1.setStyleSheet("background-image : url({});".format(self.path_1))
+		self.button2.setStyleSheet("background-image : url({});".format(self.path_2))
 
 
 	def closeEvent(self, a0: QCloseEvent) -> None:
