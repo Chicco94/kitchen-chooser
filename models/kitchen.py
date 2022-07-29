@@ -3,6 +3,8 @@ from dataclasses import dataclass
 @dataclass
 class Kitchen:
 	image_path:str
+	image_width:int
+	image_height:int
 	points:int
 	views:int
 
