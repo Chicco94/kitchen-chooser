@@ -72,8 +72,8 @@ class App(QWidget):
 			lines = results.readlines()
 			if len(lines)>0:
 				for line in lines:
-					path,width,heigth,points,views = line.split(":")
-					self.results.add(Kitchen(path,int(width),int(heigth),int(points),int(views)))
+					path,width,heigth,points,views,unchoosen = line.split(":")
+					self.results.add(Kitchen(path,int(width),int(heigth),int(points),int(views),int(unchoosen)))
 			else:
 				for file in listdir(ORIGINAL_IMAGES_PATH):
 					if isfile(join(ORIGINAL_IMAGES_PATH, file)):
@@ -82,7 +82,7 @@ class App(QWidget):
 						newsize = (WIDTH, (height*WIDTH)//width)
 						image = image.resize(newsize)
 						image.save("{}/{}".format(RESIZED_IMAGES_PATH, file))
-						self.results.add(Kitchen("{}/{}".format(RESIZED_IMAGES_PATH, file),WIDTH,(height*WIDTH)//width,0,0))
+						self.results.add(Kitchen("{}/{}".format(RESIZED_IMAGES_PATH, file),WIDTH,(height*WIDTH)//width,0,0,0))
 		self.get_images()
 		
 
@@ -90,7 +90,11 @@ class App(QWidget):
 		"""escludendo le due già attive, ne sceglie un'altra a caso"""
 		pool:Kitchens = list(self.results)
 
-		values = sorted(pool, key=lambda x:(x.views,x.points))
+		values = sorted(filter(lambda x: x.unchoosen<5,pool), key=lambda x:(x.views,x.points))
+
+		if (len(values) <= 5):
+			self.before_end()
+			exit(0)
 
 		self.leftObject = values[0]
 		self.rightObject = values[1]
@@ -103,12 +107,14 @@ class App(QWidget):
 	@pyqtSlot()
 	def on_click_1(self):
 		self.leftObject.points += 1
+		self.rightObject.unchoosen += 1
 		self.after_click()
 
 
 	@pyqtSlot()
 	def on_click_2(self):
 		self.rightObject.points += 1
+		self.leftObject.unchoosen += 1
 		self.after_click()
 
 
@@ -124,14 +130,17 @@ class App(QWidget):
 		self.label2.setText("{} %".format(self.rightObject.get_value()))
 
 
-	def closeEvent(self, a0: QCloseEvent) -> None:
+	def before_end(self) -> None:
 		with open("target/results","w") as results:
 			for kitchen in self.results:
-				results.write("{}:{}:{}:{}:{}\n".format(kitchen.image_path,kitchen.image_width,kitchen.image_height,kitchen.points,kitchen.views))
+				results.write("{}:{}:{}:{}:{}:{}\n".format(kitchen.image_path,kitchen.image_width,kitchen.image_height,kitchen.points,kitchen.views,kitchen.unchoosen))
 
 		pool:Kitchens = list(self.results)
 		values = sorted(pool, key=lambda x:(100-x.points))[0:5]
 		print(values)
+
+	def closeEvent(self, a0: QCloseEvent) -> None:
+		self.before_end()
 		return super().closeEvent(a0)
 
 

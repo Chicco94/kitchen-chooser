@@ -7,6 +7,7 @@ class Kitchen:
 	image_height:int
 	points:int
 	views:int
+	unchoosen:int
 
 	def get_value(self):
 		if (self.views == 0): return 0
