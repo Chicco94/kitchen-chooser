@@ -17,4 +17,4 @@ class Kitchen:
 		return hash(self.image_path)
 
 	def __repr__(self) -> str:
-		return "{} - {} - {}\n".format(self.views,self.points,self.image_path)
+		return "{} - {} - {} - {} - {}\n".format(self.views,self.points,self.image_path,self.image_width,self.image_height)
