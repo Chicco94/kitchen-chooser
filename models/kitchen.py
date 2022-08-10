@@ -11,7 +11,7 @@ class Kitchen:
 
 	def get_value(self):
 		if (self.views == 0): return 0
-		return 100*self.points/self.views
+		return "V:{0} - P:{1:.2f}".format(self.views,100*self.points/self.views)
 
 	def __hash__(self):
 		return hash(self.image_path)
