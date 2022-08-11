@@ -1,14 +1,18 @@
 import sys
 from os import listdir
 from os.path import isfile,join
-from typing import Sequence
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton,QLabel
-from PyQt5.QtGui import QCloseEvent,QPixmap
+from PyQt5.QtGui import QCloseEvent
 from PyQt5.QtCore import pyqtSlot
 
 from PIL import Image
 
+from typing import Sequence
 from models.kitchen import Kitchen
+
+# Types
+Kitchens = Sequence[Kitchen]
+from results_window import ResultsWindow
 
 ORIGINAL_IMAGES_PATH = "img/converted"
 RESIZED_IMAGES_PATH = "img/resized"
@@ -16,8 +20,7 @@ RESIZED_IMAGES_PATH = "img/resized"
 WIDTH = 675
 RESULTS_NEEDED = 5
 
-# Types
-Kitchens = Sequence[Kitchen]
+
 
 
 class App(QWidget):
@@ -32,6 +35,7 @@ class App(QWidget):
 		self.leftObject:Kitchen = None
 		self.rightObject:Kitchen = None
 		self.results = set()
+		self.results_images = [(QLabel(),QLabel()) for x in range(RESULTS_NEEDED)]
 
 		self.initUI()
 
@@ -95,7 +99,7 @@ class App(QWidget):
 		values = sorted(filter(lambda x: x.unchoosen<RESULTS_NEEDED,pool), key=lambda x:(x.views,x.points))
 
 		if (len(values) <= RESULTS_NEEDED):
-			self.show_results(values)
+			self.show_results(list(self.results))
 
 		self.leftObject = values[0]
 		self.rightObject = values[1]
@@ -131,24 +135,9 @@ class App(QWidget):
 
 
 	def show_results(self,results:Kitchens):
-		self.button1.deleteLater()
-		self.label1.deleteLater()
-
-		self.button2.deleteLater()
-		self.label2.deleteLater()
-
-		step = 30
-		for result in results:
-			photo = QLabel(self)
-			photo.setGeometry(step, (self.height-int(result.image_height*0.36))//2, 244, int(result.image_height*0.36))
-			photo.setText("")
-			photo.setPixmap(QPixmap(result.image_path))
-			photo.setScaledContents(True)
-			photo.setObjectName(result.get_value())
-			label = QLabel(self)
-			label.setText("{} %".format(result.get_value()))
-			label.move(step+82,(self.height+int(result.image_height*0.36))//2+10)
-			step += 264
+		self.results_window = ResultsWindow()
+		self.results_window.initUI(results,RESULTS_NEEDED)
+		self.hide()
 
 
 	def before_end(self) -> None:
@@ -157,7 +146,7 @@ class App(QWidget):
 				results.write("{}:{}:{}:{}:{}:{}\n".format(kitchen.image_path,kitchen.image_width,kitchen.image_height,kitchen.points,kitchen.views,kitchen.unchoosen))
 
 		pool:Kitchens = list(self.results)
-		values = sorted(pool, key=lambda x:(100-x.points))[0:5]
+		values = sorted(pool, key=lambda x:(100-x.points))[0:RESULTS_NEEDED]
 		print(values)
 
 
